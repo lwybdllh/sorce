@@ -2106,12 +2106,13 @@ def main():
 if __name__ == "__main__":
     print("Initializing bot...")
     main()
-# -------------------------------
-# ابقي البوت شغال دائماً على Render
-# -------------------------------
 from flask import Flask
 import threading
+import time
 
+# -------------------------------
+# Flask لإبقاء الخدمة نشطة على Render
+# -------------------------------
 app = Flask(__name__)
 
 @app.route('/')
@@ -2121,5 +2122,42 @@ def home():
 def run_flask():
     app.run(host="0.0.0.0", port=10000)
 
-# تشغيل Flask في خيط منفصل
-threading.Thread(target=run_flask).start()
+# -------------------------------
+# تشغيل البوت (كما هو عندك)
+# -------------------------------
+def main():
+    """Main bot loop using long polling"""
+    offset = 0
+    print("Bot started with database support...")
+    print(f"Database file: bot_data.db")
+    
+    while True:
+        try:
+            updates = bot_request('getUpdates', {'offset': offset, 'timeout': 30})
+            
+            if updates and updates.get('ok'):
+                for update in updates.get('result', []):
+                    offset = update['update_id'] + 1
+                    handle_message(update)
+            
+            time.sleep(0.1)
+        except KeyboardInterrupt:
+            print("\nBot stopped by user")
+            db.close()
+            break
+        except Exception as e:
+            print(f"Error in main loop: {e}")
+            time.sleep(5)
+
+# -------------------------------
+# التشغيل المتوازي للبوت و Flask
+# -------------------------------
+if __name__ == "__main__":
+    print("Initializing bot...")
+
+    # تشغيل Flask في خيط منفصل
+    threading.Thread(target=run_flask).start()
+
+    # تشغيل البوت في الخيط الرئيسي
+    main()
+
