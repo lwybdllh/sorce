@@ -1986,6 +1986,8 @@ def handle_message(update):
             'reply_markup': json.dumps(DEV_BUTTONS)
         })
     
+# ============ أوامرك الخاصة ============
+
     # رد "العملاق" عشوائي
     if text == "العملاق":
         import random
@@ -1994,7 +1996,7 @@ def handle_message(update):
             'نعم حبي 😎',
             'اشتعلو اهل فير شتريد 😠',
             'لك فداك فير حبيبي انت اموووح 💋',
-            'بوooooo 👻 ها ها فزيت شفتك شفتك لا تحلف 😂',
+            'بوooooو 👻 ها ها فزيت شفتك شفتك لا تحلف 😂',
             'هياتني اجيت 🌚❤️',
             'راجع المكتب حبيبي عبالك فير سهل تحجي ويا 😒',
             'باقي ويتمدد 😎',
@@ -2011,7 +2013,7 @@ def handle_message(update):
         })
     
     # أمر "الكروبات"
-    if text in ["الكروبات", "الكروبات", "كروبات", "المجموعات", "groups"]:
+    if text in ["الكروبات", "كروبات", "المجموعات", "groups"]:
         groups_count = len(db.get_all_groups())
         bot_request('sendMessage', {
             'chat_id': chat_id,
@@ -2066,10 +2068,7 @@ def handle_message(update):
             'reply_to_message_id': edited_message.get('message_id'),
             'reply_markup': json.dumps(DEV_BUTTONS)
         })
-
-
     else:
-        # Check if member tried to use admin commands
         admin_commands_list = ["حظر", "طرد", "كتم", "الغاء الحظر", "الغاء كتم", "تقييد", "الغاء تقييد", "حذف"]
         if reply_to_message and text in admin_commands_list:
             bot_request('sendMessage', {
@@ -2079,40 +2078,13 @@ def handle_message(update):
                 'reply_markup': json.dumps(DEV_BUTTONS)
             })
 
-def main():
-    """Main bot loop using long polling"""
-    offset = 0
-    print("Bot started with database support...")
-    print(f"Database file: bot_data.db")
-    
-    while True:
-        try:
-            updates = bot_request('getUpdates', {'offset': offset, 'timeout': 30})
-            
-            if updates and updates.get('ok'):
-                for update in updates.get('result', []):
-                    offset = update['update_id'] + 1
-                    handle_message(update)
-            
-            time.sleep(0.1)
-        except KeyboardInterrupt:
-            print("\nBot stopped by user")
-            db.close()
-            break
-        except Exception as e:
-            print(f"Error in main loop: {e}")
-            time.sleep(5)
-
-if __name__ == "__main__":
-    print("Initializing bot...")
-    main()
+# -------------------------------
+# Flask لإبقاء الخدمة نشطة على Render
+# -------------------------------
 from flask import Flask
 import threading
 import time
 
-# -------------------------------
-# Flask لإبقاء الخدمة نشطة على Render
-# -------------------------------
 app = Flask(__name__)
 
 @app.route('/')
@@ -2123,10 +2095,9 @@ def run_flask():
     app.run(host="0.0.0.0", port=10000)
 
 # -------------------------------
-# تشغيل البوت (كما هو عندك)
+# تشغيل البوت (الأساسي)
 # -------------------------------
 def main():
-    """Main bot loop using long polling"""
     offset = 0
     print("Bot started with database support...")
     print(f"Database file: bot_data.db")
@@ -2154,10 +2125,6 @@ def main():
 # -------------------------------
 if __name__ == "__main__":
     print("Initializing bot...")
-
-    # تشغيل Flask في خيط منفصل
     threading.Thread(target=run_flask).start()
-
-    # تشغيل البوت في الخيط الرئيسي
     main()
 
