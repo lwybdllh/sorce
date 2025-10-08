@@ -2106,3 +2106,20 @@ def main():
 if __name__ == "__main__":
     print("Initializing bot...")
     main()
+# -------------------------------
+# ابقي البوت شغال دائماً على Render
+# -------------------------------
+from flask import Flask
+import threading
+
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot is alive!"
+
+def run_flask():
+    app.run(host="0.0.0.0", port=10000)
+
+# تشغيل Flask في خيط منفصل
+threading.Thread(target=run_flask).start()
